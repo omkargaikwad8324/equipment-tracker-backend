@@ -1,0 +1,245 @@
+{
+  "moduleName": "Expense Management",
+  "basePath": "/api/expenses",
+  "endpoints": [
+    {
+      "name": "Add Expense (General)",
+      "method": "POST",
+      "path": "/api/expenses",
+      "description": "Log a general business expense not tied to any equipment (e.g., Office Rent, General Stationery).",
+      "requestBody": {
+        "expenseDate": "2026-07-04",
+        "amount": 5000.0,
+        "category": "OFFICE_EXPENSE",
+        "paymentMode": "BANK_TRANSFER",
+        "equipmentId": null,
+        "remarks": "Monthly office internet and telephone bills"
+      },
+      "response": {
+        "success": true,
+        "message": "Expense added successfully",
+        "data": {
+          "id": 1,
+          "expenseDate": "2026-07-04",
+          "amount": 5000.0,
+          "category": "OFFICE_EXPENSE",
+          "paymentMode": "BANK_TRANSFER",
+          "equipmentId": null,
+          "equipmentName": null,
+          "registrationNumber": null,
+          "remarks": "Monthly office internet and telephone bills"
+        }
+      }
+    },
+    {
+      "name": "Add Expense (Equipment-Specific)",
+      "method": "POST",
+      "path": "/api/expenses",
+      "description": "Log an expense specific to an equipment (e.g. Repairs, Spare Parts, Driver Salary).",
+      "requestBody": {
+        "expenseDate": "2026-07-04",
+        "amount": 12500.0,
+        "category": "REPAIRS",
+        "paymentMode": "UPI",
+        "equipmentId": 1,
+        "remarks": "Hydraulic hose replacement and engine oil top-up"
+      },
+      "response": {
+        "success": true,
+        "message": "Expense added successfully",
+        "data": {
+          "id": 2,
+          "expenseDate": "2026-07-04",
+          "amount": 12500.0,
+          "category": "REPAIRS",
+          "paymentMode": "UPI",
+          "equipmentId": 1,
+          "equipmentName": "JCB 3DX",
+          "registrationNumber": "MH-12-AB-1234",
+          "remarks": "Hydraulic hose replacement and engine oil top-up"
+        }
+      }
+    },
+    {
+      "name": "Get All Expenses",
+      "method": "GET",
+      "path": "/api/expenses",
+      "description": "Retrieve all logged expenses in the ERP.",
+      "requestBody": null,
+      "response": {
+        "success": true,
+        "message": "Expenses fetched successfully",
+        "data": [
+          {
+            "id": 1,
+            "expenseDate": "2026-07-04",
+            "amount": 5000.0,
+            "category": "OFFICE_EXPENSE",
+            "paymentMode": "BANK_TRANSFER",
+            "equipmentId": null,
+            "equipmentName": null,
+            "registrationNumber": null,
+            "remarks": "Monthly office internet and telephone bills"
+          },
+          {
+            "id": 2,
+            "expenseDate": "2026-07-04",
+            "amount": 12500.0,
+            "category": "REPAIRS",
+            "paymentMode": "UPI",
+            "equipmentId": 1,
+            "equipmentName": "JCB 3DX",
+            "registrationNumber": "MH-12-AB-1234",
+            "remarks": "Hydraulic hose replacement and engine oil top-up"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Get Expense By ID",
+      "method": "GET",
+      "path": "/api/expenses/2",
+      "description": "Retrieve details of a single expense record.",
+      "requestBody": null,
+      "response": {
+        "success": true,
+        "message": "Expense fetched successfully",
+        "data": {
+          "id": 2,
+          "expenseDate": "2026-07-04",
+          "amount": 12500.0,
+          "category": "REPAIRS",
+          "paymentMode": "UPI",
+          "equipmentId": 1,
+          "equipmentName": "JCB 3DX",
+          "registrationNumber": "MH-12-AB-1234",
+          "remarks": "Hydraulic hose replacement and engine oil top-up"
+        }
+      }
+    },
+    {
+      "name": "Update Expense",
+      "method": "PUT",
+      "path": "/api/expenses/2",
+      "description": "Modify details of an existing expense record.",
+      "requestBody": {
+        "expenseDate": "2026-07-04",
+        "amount": 13000.0,
+        "category": "REPAIRS",
+        "paymentMode": "CASH",
+        "equipmentId": 1,
+        "remarks": "Hydraulic hose replacement and engine oil top-up (Final adjusted bill)"
+      },
+      "response": {
+        "success": true,
+        "message": "Expense updated successfully",
+        "data": {
+          "id": 2,
+          "expenseDate": "2026-07-04",
+          "amount": 13000.0,
+          "category": "REPAIRS",
+          "paymentMode": "CASH",
+          "equipmentId": 1,
+          "equipmentName": "JCB 3DX",
+          "registrationNumber": "MH-12-AB-1234",
+          "remarks": "Hydraulic hose replacement and engine oil top-up (Final adjusted bill)"
+        }
+      }
+    },
+    {
+      "name": "Get Expenses By Equipment",
+      "method": "GET",
+      "path": "/api/expenses/equipment/1",
+      "description": "Fetch all expenses incurred on a specific earthmoving machine.",
+      "requestBody": null,
+      "response": {
+        "success": true,
+        "message": "Equipment expenses fetched successfully",
+        "data": [
+          {
+            "id": 2,
+            "expenseDate": "2026-07-04",
+            "amount": 13000.0,
+            "category": "REPAIRS",
+            "paymentMode": "CASH",
+            "equipmentId": 1,
+            "equipmentName": "JCB 3DX",
+            "registrationNumber": "MH-12-AB-1234",
+            "remarks": "Hydraulic hose replacement and engine oil top-up (Final adjusted bill)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Get Expenses By Category",
+      "method": "GET",
+      "path": "/api/expenses/category/OFFICE_EXPENSE",
+      "description": "Retrieve expenses filtered by category enum.",
+      "requestBody": null,
+      "response": {
+        "success": true,
+        "message": "Expenses fetched successfully for category: OFFICE_EXPENSE",
+        "data": [
+          {
+            "id": 1,
+            "expenseDate": "2026-07-04",
+            "amount": 5000.0,
+            "category": "OFFICE_EXPENSE",
+            "paymentMode": "BANK_TRANSFER",
+            "equipmentId": null,
+            "equipmentName": null,
+            "registrationNumber": null,
+            "remarks": "Monthly office internet and telephone bills"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Get Expenses By Date Range",
+      "method": "GET",
+      "path": "/api/expenses/date?from=2026-07-01&to=2026-07-31",
+      "description": "Retrieve expenses incurred within a specified period.",
+      "requestBody": null,
+      "response": {
+        "success": true,
+        "message": "Expenses fetched successfully for date range",
+        "data": [
+          {
+            "id": 1,
+            "expenseDate": "2026-07-04",
+            "amount": 5000.0,
+            "category": "OFFICE_EXPENSE",
+            "paymentMode": "BANK_TRANSFER",
+            "equipmentId": null,
+            "equipmentName": null,
+            "registrationNumber": null,
+            "remarks": "Monthly office internet and telephone bills"
+          },
+          {
+            "id": 2,
+            "expenseDate": "2026-07-04",
+            "amount": 13000.0,
+            "category": "REPAIRS",
+            "paymentMode": "CASH",
+            "equipmentId": 1,
+            "equipmentName": "JCB 3DX",
+            "registrationNumber": "MH-12-AB-1234",
+            "remarks": "Hydraulic hose replacement and engine oil top-up (Final adjusted bill)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Delete Expense",
+      "method": "DELETE",
+      "path": "/api/expenses/1",
+      "description": "Permanently delete an expense record.",
+      "requestBody": null,
+      "response": {
+        "success": true,
+        "message": "Expense deleted successfully",
+        "data": null
+      }
+    }
+  ]
+}
