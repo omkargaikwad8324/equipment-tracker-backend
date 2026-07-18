@@ -7,6 +7,8 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "work_orders")
@@ -26,21 +28,14 @@ public class WorkOrder {
 
     @OneToOne(mappedBy = "workOrder", cascade = CascadeType.ALL)
     private Invoice invoice;
-    
+    @OneToMany(mappedBy = "workOrder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<WorkOrderItem> items = new ArrayList<>();
+
     // Customer assigned to this work
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
-
-    // Equipment used
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "equipment_id", nullable = false)
-    private Equipment equipment;
-
-    // Driver assigned
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "driver_id", nullable = false)
-    private Driver driver;
 
     @Column(nullable = false)
     private LocalDate workDate;
@@ -51,19 +46,7 @@ public class WorkOrder {
     @Column(length = 1000)
     private String workDescription;
 
-    @Column(nullable = false)
-    private Double startMeter;
-
-    @Column(nullable = false)
-    private Double endMeter;
-
-    private Double totalHours;
-
-    private BigDecimal hourlyRate;
-
     private BigDecimal totalAmount;
-
-    private Double dieselUsed;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
@@ -88,4 +71,20 @@ public class WorkOrder {
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public void addItem(WorkOrderItem item) {
+
+        items.add(item);
+        item.setWorkOrder(this);
+
+    }
+
+    public void removeItem(WorkOrderItem item) {
+
+        items.remove(item);
+        item.setWorkOrder(null);
+
+    }
+
+    
 }

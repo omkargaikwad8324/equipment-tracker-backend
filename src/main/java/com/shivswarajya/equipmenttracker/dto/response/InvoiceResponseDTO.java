@@ -1,11 +1,11 @@
 package com.shivswarajya.equipmenttracker.dto.response;
 
-import lombok.Builder;
-import lombok.Data;
-
 import java.time.LocalDate;
 
 import com.shivswarajya.equipmenttracker.enums.PaymentStatus;
+
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder
@@ -21,9 +21,8 @@ public class InvoiceResponseDTO {
 
     private String workOrderNo;
 
-    private String equipmentName;
-
-    private Double totalHours;
+    // New summary fields
+    private Integer totalEquipment;
 
     private Double subtotal;
 
@@ -38,5 +37,4 @@ public class InvoiceResponseDTO {
     private String remarks;
 
     private PaymentStatus paymentStatus;
-
 }

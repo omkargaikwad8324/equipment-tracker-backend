@@ -20,25 +20,32 @@ public interface InvoiceRepository
 
         List<Invoice> findByInvoiceDate(LocalDate invoiceDate);
 
-        List<Invoice> findByCustomerId(Long customerId);
+        @Query("""
+                        SELECT DISTINCT i
+                        FROM Invoice i
+                        LEFT JOIN FETCH i.payments
+                        WHERE i.customer.id = :customerId
+                        """)
+        List<Invoice> findByCustomerId(
+                        @Param("customerId") Long customerId);
 
         List<Invoice> findByCustomer_NameContainingIgnoreCase(String customerName);
 
         @Query("""
-                        SELECT i
+                        SELECT DISTINCT i
                         FROM Invoice i
                         JOIN FETCH i.customer
                         JOIN FETCH i.workOrder w
-                        JOIN FETCH w.equipment
+                        LEFT JOIN FETCH w.items
                         """)
         List<Invoice> findAllWithDetails();
 
         @Query("""
-                        SELECT i
+                        SELECT DISTINCT i
                         FROM Invoice i
                         JOIN FETCH i.customer
                         JOIN FETCH i.workOrder w
-                        JOIN FETCH w.equipment
+                        LEFT JOIN FETCH w.items
                         WHERE i.id = :id
                         """)
         Optional<Invoice> findByIdWithDetails(@Param("id") Long id);

@@ -4,24 +4,26 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.shivswarajya.equipmenttracker.dto.request.InvoiceRequestDTO;
+import com.shivswarajya.equipmenttracker.dto.response.InvoiceResponseDTO;
 import com.shivswarajya.equipmenttracker.entity.Invoice;
 
 public interface InvoiceService {
 
-    Invoice createInvoice(InvoiceRequestDTO dto);
+    InvoiceResponseDTO createInvoice(InvoiceRequestDTO dto);
 
-    Invoice updateInvoice(Long id, InvoiceRequestDTO dto);
+    InvoiceResponseDTO getInvoice(Long id);
 
-    Invoice getInvoice(Long id);
+    List<InvoiceResponseDTO> getAllInvoices();
 
-    List<Invoice> getAllInvoices();
+    InvoiceResponseDTO updateInvoice(Long id, InvoiceRequestDTO dto);
 
     void deleteInvoice(Long id);
 
-    Invoice getByInvoiceNumber(String invoiceNumber);
+    InvoiceResponseDTO getByInvoiceNumber(String invoiceNumber);
 
-    List<Invoice> searchInvoices(String customerName);
+    List<InvoiceResponseDTO> searchInvoices(String customerName);
 
-    List<Invoice> getInvoicesByDate(LocalDate date);
+    List<InvoiceResponseDTO> getInvoicesByDate(LocalDate date);
 
+    double getTotalRevenue();
 }

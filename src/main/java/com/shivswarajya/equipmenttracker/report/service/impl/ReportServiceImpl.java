@@ -11,7 +11,6 @@ import com.shivswarajya.equipmenttracker.entity.Expense;
 import com.shivswarajya.equipmenttracker.entity.Fuel;
 import com.shivswarajya.equipmenttracker.entity.Invoice;
 import com.shivswarajya.equipmenttracker.entity.Maintenance;
-import com.shivswarajya.equipmenttracker.entity.WorkOrder;
 import com.shivswarajya.equipmenttracker.report.dto.DashboardReportDTO;
 import com.shivswarajya.equipmenttracker.report.dto.EquipmentUtilizationDTO;
 import com.shivswarajya.equipmenttracker.report.dto.ExpenseReportDTO;
@@ -25,7 +24,7 @@ import com.shivswarajya.equipmenttracker.repository.FuelRepository;
 import com.shivswarajya.equipmenttracker.repository.InvoiceRepository;
 import com.shivswarajya.equipmenttracker.repository.MaintenanceRepository;
 import com.shivswarajya.equipmenttracker.repository.WorkOrderRepository;
-
+import com.shivswarajya.equipmenttracker.repository.WorkOrderItemRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -40,6 +39,7 @@ public class ReportServiceImpl implements ReportService {
         private final FuelRepository fuelRepository;
         private final MaintenanceRepository maintenanceRepository;
         private final WorkOrderRepository workOrderRepository;
+        private final WorkOrderItemRepository workOrderItemRepository;
 
         @Override
         public DashboardReportDTO getDashboardReport() {
@@ -173,18 +173,17 @@ public class ReportServiceImpl implements ReportService {
 
         private EquipmentUtilizationDTO mapEquipmentReport(Equipment equipment) {
 
-                double revenue = workOrderRepository
+                double revenue = workOrderItemRepository
                                 .findByEquipmentId(equipment.getId())
                                 .stream()
-                                .map(WorkOrder::getTotalAmount)
+                                .map(item -> item.getTotalAmount())
                                 .filter(Objects::nonNull)
                                 .mapToDouble(java.math.BigDecimal::doubleValue)
                                 .sum();
-
-                double workingHours = workOrderRepository
+                double workingHours = workOrderItemRepository
                                 .findByEquipmentId(equipment.getId())
                                 .stream()
-                                .map(WorkOrder::getTotalHours)
+                                .map(item -> item.getTotalHours())
                                 .filter(Objects::nonNull)
                                 .mapToDouble(Double::doubleValue)
                                 .sum();

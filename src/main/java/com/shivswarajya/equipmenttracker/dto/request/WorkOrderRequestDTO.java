@@ -1,44 +1,37 @@
 package com.shivswarajya.equipmenttracker.dto.request;
 
+import java.time.LocalDate;
+import java.util.List;
+
+import com.shivswarajya.equipmenttracker.enums.WorkStatus;
+
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.time.LocalDate;
-
-import com.shivswarajya.equipmenttracker.enums.WorkStatus;
-
 @Data
 public class WorkOrderRequestDTO {
 
-    
-
-    @NotNull
+    @NotNull(message = "Customer is required")
     private Long customerId;
 
-    @NotNull
-    private Long equipmentId;
-
-    @NotNull
-    private Long driverId;
-
-    @NotNull
+    @NotNull(message = "Work date is required")
     private LocalDate workDate;
 
-    @NotBlank
+    @NotBlank(message = "Site name is required")
     private String siteName;
 
     private String workDescription;
 
-    @NotNull
-    private Double startMeter;
-
-    @NotNull
-    private Double endMeter;
-
-    private Double dieselUsed;
+    private String remarks;
 
     private WorkStatus status;
 
-    private String remarks;
+    @Valid
+    @NotNull(message = "At least one work item is required")
+    private List<WorkOrderItemRequestDTO> items;
+
+    
+
 }

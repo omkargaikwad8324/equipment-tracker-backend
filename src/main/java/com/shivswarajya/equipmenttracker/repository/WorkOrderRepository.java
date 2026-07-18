@@ -1,116 +1,69 @@
 package com.shivswarajya.equipmenttracker.repository;
 
-import com.shivswarajya.equipmenttracker.entity.WorkOrder;
-import com.shivswarajya.equipmenttracker.enums.WorkStatus;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.shivswarajya.equipmenttracker.entity.WorkOrder;
+import com.shivswarajya.equipmenttracker.enums.WorkStatus;
+
+@Repository
 public interface WorkOrderRepository extends JpaRepository<WorkOrder, Long> {
 
-        Optional<WorkOrder> findTopByOrderByIdDesc();
+        long countByStatus(WorkStatus status);
+
+        // ===========================
+        // Basic Lookup
+        // ===========================
 
         Optional<WorkOrder> findByWorkOrderNo(String workOrderNo);
 
-        List<WorkOrder> findByWorkDate(LocalDate workDate);
-
-        List<WorkOrder> findByStatus(WorkStatus status);
-
-        List<WorkOrder> findByCustomer_NameContainingIgnoreCase(String customerName);
+        // ===========================
+        // Customer
+        // ===========================
 
         List<WorkOrder> findByCustomerId(Long customerId);
 
-        List<WorkOrder> findByEquipmentId(Long equipmentId);
+        List<WorkOrder> findByCustomerIdOrderByWorkDateDesc(Long customerId);
 
-        List<WorkOrder> findByDriverId(Long driverId);
+        List<WorkOrder> findByCustomer_NameContainingIgnoreCaseOrderByWorkDateDesc(String name);
 
-        @Query("""
-                        SELECT w
-                        FROM WorkOrder w
-                        JOIN FETCH w.customer
-                        JOIN FETCH w.equipment
-                        JOIN FETCH w.driver
-                        """)
-        List<WorkOrder> findAllWithDetails();
+        // ===========================
+        // Status
+        // ===========================
 
-        @Query("""
-                        SELECT w
-                        FROM WorkOrder w
-                        JOIN FETCH w.customer
-                        JOIN FETCH w.equipment
-                        JOIN FETCH w.driver
-                        WHERE w.id = :id
-                        """)
-        Optional<WorkOrder> findByIdWithDetails(@Param("id") Long id);
+        List<WorkOrder> findByStatus(WorkStatus status);
 
-        boolean existsByEquipmentIdAndStatusIn(
-                        Long equipmentId,
-                        List<WorkStatus> statuses);
+        // ===========================
+        // Date Filters
+        // ===========================
 
-        boolean existsByDriverIdAndStatusIn(
-                        Long driverId,
-                        List<WorkStatus> statuses);
+        List<WorkOrder> findByWorkDate(LocalDate workDate);
 
-        boolean existsByEquipmentIdAndStatusInAndIdNot(
-                        Long equipmentId,
-                        List<WorkStatus> statuses,
-                        Long id);
+        List<WorkOrder> findByWorkDateBetween(
+                        LocalDate startDate,
+                        LocalDate endDate);
 
-        boolean existsByDriverIdAndStatusInAndIdNot(
-                        Long driverId,
-                        List<WorkStatus> statuses,
-                        Long id);
+        // ===========================
+        // Site
+        // ===========================
 
-        @Query("""
-                        SELECT COALESCE(SUM(w.totalHours), 0)
-                        FROM WorkOrder w
-                        """)
-        Double getTotalWorkingHours();
+        List<WorkOrder> findBySiteNameContainingIgnoreCase(String siteName);
 
-        @Query("""
-                        SELECT COALESCE(SUM(w.totalHours), 0)
-                        FROM WorkOrder w
-                        WHERE w.workDate = CURRENT_DATE
-                        """)
-        Double getTodayWorkingHours();
+        // ===========================
+        // Fetch Items
+        // ===========================
 
-        @Query("""
-                        SELECT COALESCE(SUM(w.totalHours), 0)
-                        FROM WorkOrder w
-                        WHERE YEAR(w.workDate) = YEAR(CURRENT_DATE)
-                        AND MONTH(w.workDate) = MONTH(CURRENT_DATE)
-                        """)
-        Double getCurrentMonthWorkingHours();
-
-        @Query("""
-                        SELECT COALESCE(SUM(w.totalAmount), 0)
-                        FROM WorkOrder w
-                        """)
-        Double getTotalWorkOrderRevenue();
-
-        @Query("""
-                        SELECT COUNT(w)
-                        FROM WorkOrder w
-                        WHERE w.status = 'COMPLETED'
-                        """)
-        Long countCompletedWorkOrders();
-
-        @Query("""
-                        SELECT COUNT(w)
-                        FROM WorkOrder w
-                        WHERE w.status = 'PENDING'
-                        """)
-        Long countPendingWorkOrders();
-
-        @Query("""
-                        SELECT COUNT(w)
-                        FROM WorkOrder w
-                        WHERE w.status = 'IN_PROGRESS'
-                        """)
-        Long countInProgressWorkOrders();
+        @EntityGraph(attributePaths = {
+                        "customer",
+                        "items",
+                        "items.equipment",
+                        "items.driver"
+        })
+        Optional<WorkOrder> findWithItemsById(Long id);
 
 }

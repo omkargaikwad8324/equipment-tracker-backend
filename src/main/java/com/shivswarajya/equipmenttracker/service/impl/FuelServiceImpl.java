@@ -32,7 +32,7 @@ public class FuelServiceImpl implements FuelService {
     public Fuel addFuel(FuelRequestDTO dto) {
 
         WorkOrder workOrder = workOrderRepository
-                .findByIdWithDetails(dto.getWorkOrderId())
+                .findWithItemsById(dto.getWorkOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Work Order not found"));
 
         Equipment equipment = equipmentRepository.findById(dto.getEquipmentId())
@@ -47,7 +47,12 @@ public class FuelServiceImpl implements FuelService {
             throw new IllegalArgumentException(
                     "Rate per litre must be greater than zero.");
         }
-        if (!workOrder.getEquipment().getId().equals(equipment.getId())) {
+        boolean equipmentExists = workOrder.getItems()
+                .stream()
+                .anyMatch(item -> item.getEquipment() != null
+                        && item.getEquipment().getId().equals(equipment.getId()));
+
+        if (!equipmentExists) {
             throw new IllegalArgumentException(
                     "Selected equipment does not belong to this Work Order.");
         }

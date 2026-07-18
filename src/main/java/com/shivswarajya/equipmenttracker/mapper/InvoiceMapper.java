@@ -20,10 +20,10 @@ public class InvoiceMapper {
                 .invoiceDate(invoice.getInvoiceDate())
                 .customerName(invoice.getCustomer().getName())
                 .workOrderNo(invoice.getWorkOrder().getWorkOrderNo())
-                .equipmentName(invoice.getWorkOrder()
-                        .getEquipment()
-                        .getEquipmentName())
-                .totalHours(invoice.getWorkOrder().getTotalHours())
+                .totalEquipment(
+                        invoice.getWorkOrder().getItems() != null
+                                ? invoice.getWorkOrder().getItems().size()
+                                : 0)
                 .subtotal(invoice.getSubtotal())
                 .gstAmount(invoice.getGstAmount())
                 .grandTotal(invoice.getGrandTotal())

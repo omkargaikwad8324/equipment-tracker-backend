@@ -22,8 +22,10 @@ import com.shivswarajya.equipmenttracker.repository.FuelRepository;
 import com.shivswarajya.equipmenttracker.repository.InvoiceRepository;
 import com.shivswarajya.equipmenttracker.repository.MaintenanceRepository;
 import com.shivswarajya.equipmenttracker.repository.PaymentRepository;
+import com.shivswarajya.equipmenttracker.repository.WorkOrderItemRepository;
 import com.shivswarajya.equipmenttracker.repository.WorkOrderRepository;
-
+import com.shivswarajya.equipmenttracker.entity.WorkOrderItem;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -34,6 +36,7 @@ public class DashboardServiceImpl implements DashboardService {
         private final EquipmentRepository equipmentRepository;
         private final DriverRepository driverRepository;
         private final WorkOrderRepository workOrderRepository;
+        private final WorkOrderItemRepository workOrderItemRepository;
         private final InvoiceRepository invoiceRepository;
         private final FuelRepository fuelRepository;
         private final MaintenanceRepository maintenanceRepository;
@@ -71,15 +74,26 @@ public class DashboardServiceImpl implements DashboardService {
                                 .filter(i -> YearMonth.from(i.getInvoiceDate()).equals(currentMonth))
                                 .mapToDouble(Invoice::getGrandTotal)
                                 .sum();
-                double todayHours = workOrderRepository.getTodayWorkingHours();
-
-                double monthlyHours = workOrderRepository.getCurrentMonthWorkingHours();
-
-                long completed = workOrderRepository.countCompletedWorkOrders();
-
-                long pending = workOrderRepository.countPendingWorkOrders();
-
-                long inProgress = workOrderRepository.countInProgressWorkOrders();
+                double todayHours = workOrderItemRepository.findAll()
+                                .stream()
+                                .filter(item -> item.getWorkOrder() != null)
+                                .filter(item -> LocalDate.now().equals(item.getWorkOrder().getWorkDate()))
+                                .map(WorkOrderItem::getTotalHours)
+                                .filter(Objects::nonNull)
+                                .mapToDouble(Double::doubleValue)
+                                .sum();
+                double monthlyHours = workOrderItemRepository.findAll()
+                                .stream()
+                                .filter(item -> item.getWorkOrder() != null)
+                                .filter(item -> YearMonth.from(item.getWorkOrder().getWorkDate())
+                                                .equals(currentMonth))
+                                .map(WorkOrderItem::getTotalHours)
+                                .filter(Objects::nonNull)
+                                .mapToDouble(Double::doubleValue)
+                                .sum();
+                long completed = workOrderRepository.countByStatus(WorkStatus.COMPLETED);
+                long pending = workOrderRepository.countByStatus(WorkStatus.PENDING);
+                long inProgress = workOrderRepository.countByStatus(WorkStatus.IN_PROGRESS);
                 double completionPercentage = 0;
 
                 if (workOrderRepository.count() > 0) {

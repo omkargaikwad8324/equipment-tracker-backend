@@ -2,14 +2,15 @@ package com.shivswarajya.equipmenttracker.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.shivswarajya.equipmenttracker.dto.request.WorkOrderRequestDTO;
 import com.shivswarajya.equipmenttracker.dto.response.WorkOrderResponseDTO;
-import com.shivswarajya.equipmenttracker.entity.WorkOrder;
-import com.shivswarajya.equipmenttracker.mapper.WorkOrderMapper;
+import com.shivswarajya.equipmenttracker.dto.response.WorkOrderSummaryDTO;
 import com.shivswarajya.equipmenttracker.service.WorkOrderService;
-import com.shivswarajya.equipmenttracker.util.ApiResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,89 +18,68 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/work-orders")
 @RequiredArgsConstructor
+@Validated
 @CrossOrigin(origins = "*")
 public class WorkOrderController {
 
-    private final WorkOrderService workOrderService;
-    private final WorkOrderMapper workOrderMapper;
+        private final WorkOrderService workOrderService;
 
-    @PostMapping
-    public ApiResponse<WorkOrderResponseDTO> addWorkOrder(
-            @Valid @RequestBody WorkOrderRequestDTO dto) {
+        @PostMapping
+        public ResponseEntity<WorkOrderResponseDTO> createWorkOrder(
+                        @Valid @RequestBody WorkOrderRequestDTO requestDTO) {
 
-        WorkOrder workOrder = workOrderService.addWorkOrder(dto);
+                WorkOrderResponseDTO response = workOrderService.addWorkOrder(requestDTO);
 
-        return new ApiResponse<>(
-                true,
-                "Work Order created successfully",
-                workOrderMapper.toResponse(workOrder));
-    }
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        }
 
-    @GetMapping
-    public ApiResponse<List<WorkOrderResponseDTO>> getAllWorkOrders() {
+        @PutMapping("/{id}")
+        public ResponseEntity<WorkOrderResponseDTO> updateWorkOrder(
+                        @PathVariable Long id,
+                        @Valid @RequestBody WorkOrderRequestDTO requestDTO) {
 
-        List<WorkOrderResponseDTO> response = workOrderService
-                .getAllWorkOrders()
-                .stream()
-                .map(workOrderMapper::toResponse)
-                .toList();
+                return ResponseEntity.ok(
+                                workOrderService.updateWorkOrder(id, requestDTO));
+        }
 
-        return new ApiResponse<>(
-                true,
-                "Work Orders fetched successfully",
-                response);
-    }
+        @GetMapping("/{id}")
+        public ResponseEntity<WorkOrderResponseDTO> getWorkOrder(
+                        @PathVariable Long id) {
 
-    @GetMapping("/{id}")
-    public ApiResponse<WorkOrderResponseDTO> getWorkOrder(
-            @PathVariable Long id) {
+                return ResponseEntity.ok(
+                                workOrderService.getWorkOrder(id));
+        }
 
-        return new ApiResponse<>(
-                true,
-                "Work Order fetched successfully",
-                workOrderMapper.toResponse(
-                        workOrderService.getWorkOrder(id)));
-    }
+        @GetMapping
+        public ResponseEntity<List<WorkOrderResponseDTO>> getAllWorkOrders() {
 
-    @PutMapping("/{id}")
-    public ApiResponse<WorkOrderResponseDTO> updateWorkOrder(
-            @PathVariable Long id,
-            @Valid @RequestBody WorkOrderRequestDTO dto) {
+                return ResponseEntity.ok(
+                                workOrderService.getAllWorkOrders());
+        }
 
-        WorkOrder workOrder =
-                workOrderService.updateWorkOrder(id, dto);
+        @GetMapping("/search")
+        public ResponseEntity<List<WorkOrderResponseDTO>> searchByCustomer(
+                        @RequestParam String customerName) {
 
-        return new ApiResponse<>(
-                true,
-                "Work Order updated successfully",
-                workOrderMapper.toResponse(workOrder));
-    }
+                return ResponseEntity.ok(
+                                workOrderService.searchByCustomer(customerName));
+        }
 
-    @DeleteMapping("/{id}")
-    public ApiResponse<String> deleteWorkOrder(
-            @PathVariable Long id) {
+        @GetMapping("/customer/{customerId}")
+        public ResponseEntity<List<WorkOrderSummaryDTO>> getCustomerWorkOrders(
+                        @PathVariable Long customerId) {
 
-        workOrderService.deleteWorkOrder(id);
+                return ResponseEntity.ok(
+                                workOrderService.getCustomerWorkOrders(customerId));
+        }
 
-        return new ApiResponse<>(
-                true,
-                "Work Order deleted successfully",
-                null);
-    }
+        @DeleteMapping("/{id}")
+        public ResponseEntity<Void> deleteWorkOrder(
+                        @PathVariable Long id) {
 
-    @GetMapping("/search")
-    public ApiResponse<List<WorkOrderResponseDTO>> searchCustomer(
-            @RequestParam String customerName) {
+                workOrderService.deleteWorkOrder(id);
 
-        List<WorkOrderResponseDTO> response =
-                workOrderService.searchByCustomer(customerName)
-                        .stream()
-                        .map(workOrderMapper::toResponse)
-                        .toList();
+                return ResponseEntity.noContent().build();
+        }
 
-        return new ApiResponse<>(
-                true,
-                "Work Orders fetched successfully",
-                response);
-    }
 }

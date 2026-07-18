@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
+import com.shivswarajya.equipmenttracker.dto.response.CustomerSummaryDTO;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -106,6 +107,15 @@ public class CustomerController {
                                 customerMapper.toResponse(customer));
         }
 
+        @GetMapping("/{id}/summary")
+        @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+        public ApiResponse<CustomerSummaryDTO> getCustomerSummary(@PathVariable Long id) {
+                return new ApiResponse<>(
+                                true,
+                                "Customer summary fetched successfully",
+                                customerService.getCustomerSummary(id));
+        }
+
         @DeleteMapping("/{id}")
         @PreAuthorize("hasRole('ADMIN')")
         public ApiResponse<String> deleteCustomer(@PathVariable Long id) {
@@ -117,4 +127,5 @@ public class CustomerController {
                                 "Customer deleted successfully",
                                 null);
         }
+
 }

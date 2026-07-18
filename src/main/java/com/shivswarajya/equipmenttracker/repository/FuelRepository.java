@@ -14,6 +14,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface FuelRepository extends JpaRepository<Fuel, Long> {
 
+        boolean existsByWorkOrderId(Long workOrderId);
+        
         Optional<Fuel> findTopByOrderByIdDesc();
 
         Optional<Fuel> findByFuelEntryNo(String fuelEntryNo);

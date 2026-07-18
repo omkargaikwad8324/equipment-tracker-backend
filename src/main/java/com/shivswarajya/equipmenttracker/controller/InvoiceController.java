@@ -6,8 +6,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.shivswarajya.equipmenttracker.dto.request.InvoiceRequestDTO;
 import com.shivswarajya.equipmenttracker.dto.response.InvoiceResponseDTO;
-import com.shivswarajya.equipmenttracker.entity.Invoice;
-import com.shivswarajya.equipmenttracker.mapper.InvoiceMapper;
 import com.shivswarajya.equipmenttracker.service.InvoiceService;
 import com.shivswarajya.equipmenttracker.util.ApiResponse;
 
@@ -20,69 +18,57 @@ import lombok.RequiredArgsConstructor;
 @CrossOrigin(origins = "*")
 public class InvoiceController {
 
-        private final InvoiceService invoiceService;
-        private final InvoiceMapper invoiceMapper;
+    private final InvoiceService invoiceService;
 
-        @PostMapping
-        public ApiResponse<InvoiceResponseDTO> createInvoice(
-                        @Valid @RequestBody InvoiceRequestDTO dto) {
+    @PostMapping
+    public ApiResponse<InvoiceResponseDTO> createInvoice(
+            @Valid @RequestBody InvoiceRequestDTO dto) {
 
-                Invoice invoice = invoiceService.createInvoice(dto);
+        return new ApiResponse<>(
+                true,
+                "Invoice created successfully",
+                invoiceService.createInvoice(dto));
+    }
 
-                return new ApiResponse<>(
-                                true,
-                                "Invoice created successfully",
-                                invoiceMapper.toResponse(invoice));
-        }
+    @GetMapping
+    public ApiResponse<List<InvoiceResponseDTO>> getAllInvoices() {
 
-        @GetMapping
-        public ApiResponse<List<InvoiceResponseDTO>> getAllInvoices() {
+        return new ApiResponse<>(
+                true,
+                "Invoices fetched successfully",
+                invoiceService.getAllInvoices());
+    }
 
-                List<InvoiceResponseDTO> response = invoiceService
-                                .getAllInvoices()
-                                .stream()
-                                .map(invoiceMapper::toResponse)
-                                .toList();
+    @GetMapping("/{id}")
+    public ApiResponse<InvoiceResponseDTO> getInvoice(
+            @PathVariable Long id) {
 
-                return new ApiResponse<>(
-                                true,
-                                "Invoices fetched successfully",
-                                response);
-        }
+        return new ApiResponse<>(
+                true,
+                "Invoice fetched successfully",
+                invoiceService.getInvoice(id));
+    }
 
-        @GetMapping("/{id}")
-        public ApiResponse<InvoiceResponseDTO> getInvoice(
-                        @PathVariable Long id) {
+    @PutMapping("/{id}")
+    public ApiResponse<InvoiceResponseDTO> updateInvoice(
+            @PathVariable Long id,
+            @Valid @RequestBody InvoiceRequestDTO dto) {
 
-                return new ApiResponse<>(
-                                true,
-                                "Invoice fetched successfully",
-                                invoiceMapper.toResponse(
-                                                invoiceService.getInvoice(id)));
-        }
+        return new ApiResponse<>(
+                true,
+                "Invoice updated successfully",
+                invoiceService.updateInvoice(id, dto));
+    }
 
-        @PutMapping("/{id}")
-        public ApiResponse<InvoiceResponseDTO> updateInvoice(
-                        @PathVariable Long id,
-                        @Valid @RequestBody InvoiceRequestDTO dto) {
+    @DeleteMapping("/{id}")
+    public ApiResponse<String> deleteInvoice(
+            @PathVariable Long id) {
 
-                Invoice invoice = invoiceService.updateInvoice(id, dto);
+        invoiceService.deleteInvoice(id);
 
-                return new ApiResponse<>(
-                                true,
-                                "Invoice updated successfully",
-                                invoiceMapper.toResponse(invoice));
-        }
-
-        @DeleteMapping("/{id}")
-        public ApiResponse<String> deleteInvoice(
-                        @PathVariable Long id) {
-
-                invoiceService.deleteInvoice(id);
-
-                return new ApiResponse<>(
-                                true,
-                                "Invoice deleted successfully",
-                                null);
-        }
+        return new ApiResponse<>(
+                true,
+                "Invoice deleted successfully",
+                null);
+    }
 }

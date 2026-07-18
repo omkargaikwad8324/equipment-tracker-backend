@@ -8,16 +8,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.shivswarajya.equipmenttracker.dto.request.InvoiceRequestDTO;
+import com.shivswarajya.equipmenttracker.dto.response.InvoiceResponseDTO;
 import com.shivswarajya.equipmenttracker.entity.Invoice;
 import com.shivswarajya.equipmenttracker.entity.WorkOrder;
 import com.shivswarajya.equipmenttracker.enums.PaymentStatus;
 import com.shivswarajya.equipmenttracker.exception.BadRequestException;
 import com.shivswarajya.equipmenttracker.exception.ResourceNotFoundException;
+import com.shivswarajya.equipmenttracker.mapper.InvoiceMapper;
 import com.shivswarajya.equipmenttracker.repository.InvoiceRepository;
 import com.shivswarajya.equipmenttracker.repository.WorkOrderRepository;
 import com.shivswarajya.equipmenttracker.service.InvoiceService;
 import com.shivswarajya.equipmenttracker.enums.WorkStatus;
 import lombok.RequiredArgsConstructor;
+import com.shivswarajya.equipmenttracker.dto.response.InvoiceResponseDTO;
+import com.shivswarajya.equipmenttracker.mapper.InvoiceMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -26,10 +30,10 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
     private final WorkOrderRepository workOrderRepository;
+    private final InvoiceMapper invoiceMapper;
 
     @Override
-    public Invoice createInvoice(InvoiceRequestDTO dto) {
-
+    public InvoiceResponseDTO createInvoice(InvoiceRequestDTO dto) {
         validateInvoiceAlreadyExists(dto.getWorkOrderId());
         WorkOrder workOrder = workOrderRepository.findById(dto.getWorkOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Work Order not found"));
@@ -97,30 +101,38 @@ public class InvoiceServiceImpl implements InvoiceService {
         Invoice saved = invoiceRepository.save(invoice);
 
         workOrder.setInvoice(saved);
-
         workOrderRepository.save(workOrder);
 
-        return saved;
+        // Reload invoice with fetched relations
+        Invoice loaded = invoiceRepository.findByIdWithDetails(saved.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
+
+        return invoiceMapper.toResponse(loaded);
     }
 
     @Override
-    public Invoice getInvoice(Long id) {
+    public InvoiceResponseDTO getInvoice(Long id) {
 
-       return invoiceRepository.findByIdWithDetails(id)
-        .orElseThrow(() ->
-                new ResourceNotFoundException("Invoice not found"));
+        Invoice invoice = invoiceRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
+
+        return invoiceMapper.toResponse(invoice);
     }
 
     @Override
-    public List<Invoice> getAllInvoices() {
+    public List<InvoiceResponseDTO> getAllInvoices() {
 
-        return invoiceRepository.findAll();
+        return invoiceRepository.findAllWithDetails()
+                .stream()
+                .map(invoiceMapper::toResponse)
+                .toList();
     }
 
     @Override
     public void deleteInvoice(Long id) {
 
-        Invoice invoice = getInvoice(id);
+        Invoice invoice = invoiceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
 
         WorkOrder workOrder = invoice.getWorkOrder();
 
@@ -182,17 +194,14 @@ public class InvoiceServiceImpl implements InvoiceService {
         return PaymentStatus.PARTIAL;
     }
 
-
     public double getTotalRevenue() {
 
-        return invoiceRepository.findAll()
-                .stream()
-                .mapToDouble(Invoice::getGrandTotal)
-                .sum();
+        return invoiceRepository.getTotalRevenue();
+
     }
 
     @Override
-    public Invoice updateInvoice(Long id, InvoiceRequestDTO dto) {
+    public InvoiceResponseDTO updateInvoice(Long id, InvoiceRequestDTO dto) {
 
         Invoice invoice = invoiceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
@@ -245,27 +254,41 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         invoice.setRemarks(dto.getRemarks());
 
-        return invoiceRepository.save(invoice);
+        Invoice updated = invoiceRepository.save(invoice);
+
+        Invoice loaded = invoiceRepository.findByIdWithDetails(updated.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
+
+        return invoiceMapper.toResponse(loaded);
     }
 
     @Override
-    public Invoice getByInvoiceNumber(String invoiceNumber) {
+    public InvoiceResponseDTO getByInvoiceNumber(String invoiceNumber) {
 
-        return invoiceRepository
+        Invoice invoice = invoiceRepository
                 .findByInvoiceNumber(invoiceNumber)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Invoice not found"));
+
+        return invoiceMapper.toResponse(invoice);
     }
 
     @Override
-    public List<Invoice> searchInvoices(String customerName) {
+    public List<InvoiceResponseDTO> searchInvoices(String customerName) {
 
         return invoiceRepository
-                .findByCustomer_NameContainingIgnoreCase(customerName);
+                .findByCustomer_NameContainingIgnoreCase(customerName)
+                .stream()
+                .map(invoiceMapper::toResponse)
+                .toList();
     }
 
     @Override
-    public List<Invoice> getInvoicesByDate(LocalDate date) {
-        return invoiceRepository.findByInvoiceDate(date);
+    public List<InvoiceResponseDTO> getInvoicesByDate(LocalDate date) {
+
+        return invoiceRepository.findByInvoiceDate(date)
+                .stream()
+                .map(invoiceMapper::toResponse)
+                .toList();
     }
 }

@@ -2,20 +2,35 @@ package com.shivswarajya.equipmenttracker.service.impl;
 
 import com.shivswarajya.equipmenttracker.dto.request.CustomerDTO;
 import com.shivswarajya.equipmenttracker.entity.Customer;
+import com.shivswarajya.equipmenttracker.entity.Invoice;
 import com.shivswarajya.equipmenttracker.repository.CustomerRepository;
 import com.shivswarajya.equipmenttracker.service.CustomerService;
 import org.springframework.stereotype.Service;
 import com.shivswarajya.equipmenttracker.exception.ResourceNotFoundException;
 import com.shivswarajya.equipmenttracker.exception.BadRequestException;
 import java.util.List;
+import com.shivswarajya.equipmenttracker.dto.response.CustomerSummaryDTO;
+import com.shivswarajya.equipmenttracker.repository.WorkOrderRepository;
+import com.shivswarajya.equipmenttracker.repository.InvoiceRepository;
+import com.shivswarajya.equipmenttracker.repository.PaymentRepository;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository) {
+    private final WorkOrderRepository workOrderRepository;
+
+    private final InvoiceRepository invoiceRepository;
+
+    private final PaymentRepository paymentRepository;
+
+    public CustomerServiceImpl(CustomerRepository customerRepository, WorkOrderRepository workOrderRepository,
+            InvoiceRepository invoiceRepository, PaymentRepository paymentRepository) {
         this.customerRepository = customerRepository;
+        this.workOrderRepository = workOrderRepository;
+        this.invoiceRepository = invoiceRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     @Override
@@ -63,7 +78,7 @@ public class CustomerServiceImpl implements CustomerService {
     public Customer updateCustomer(Long id, CustomerDTO dto) {
 
         Customer customer = getCustomer(id);
-        
+
         if (!customer.getMobile().equals(dto.getMobile())
                 && customerRepository.existsByMobile(dto.getMobile())) {
 
@@ -83,5 +98,44 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = getCustomer(id);
 
         customerRepository.delete(customer);
+    }
+
+    @Override
+    public CustomerSummaryDTO getCustomerSummary(Long customerId) {
+
+        Customer customer = getCustomer(customerId);
+
+        List<Invoice> invoices = invoiceRepository.findByCustomerId(customerId);
+
+        long totalWorkOrders = workOrderRepository.findByCustomerId(customerId).size();
+
+        long invoiceCount = invoices.size();
+
+        double totalRevenue = invoices.stream()
+                .mapToDouble(invoice -> invoice.getGrandTotal() == null ? 0.0 : invoice.getGrandTotal())
+                .sum();
+
+        double paidAmount = invoices.stream()
+                .mapToDouble(invoice -> invoice.getPaidAmount() == null ? 0.0 : invoice.getPaidAmount())
+                .sum();
+
+        double pendingAmount = invoices.stream()
+                .mapToDouble(invoice -> invoice.getBalanceAmount() == null ? 0.0 : invoice.getBalanceAmount())
+                .sum();
+
+        long paymentCount = invoices.stream()
+                .mapToLong(invoice -> invoice.getPayments().size())
+                .sum();
+
+        return CustomerSummaryDTO.builder()
+                .customerId(customer.getId())
+                .customerName(customer.getName())
+                .totalRevenue(totalRevenue)
+                .paidAmount(paidAmount)
+                .pendingAmount(pendingAmount)
+                .totalWorkOrders(totalWorkOrders)
+                .invoiceCount(invoiceCount)
+                .paymentCount(paymentCount)
+                .build();
     }
 }
